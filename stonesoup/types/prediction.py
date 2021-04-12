@@ -170,7 +170,8 @@ class ParticleMeasurementPrediction(MeasurementPrediction, ParticleState):
 class CompositePrediction(Prediction, CompositeState):
     """CompositePrediction type that represents a prediction in a composite state space.
 
-    Composition of multiple Prediction types."""
+    Composition of a sequence of Prediction types.
+    """
 
 
 class CompositeMeasurementPrediction(MeasurementPrediction, CompositeState):
