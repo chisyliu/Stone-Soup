@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 import datetime
+import uuid
 from collections import abc
 from itertools import combinations
 from typing import MutableSequence, Sequence
 
 import numpy as np
-import uuid
 
-from ..base import Property
 from .array import StateVector, CovarianceMatrix
 from .base import Type
-from .particle import Particles
 from .numeric import Probability
+from .particle import Particles
+from ..base import Property
 
 
 class State(Type):
@@ -194,6 +194,8 @@ class SqrtGaussianState(State):
 
         """
         return self.sqrt_covar @ self.sqrt_covar.T
+
+
 GaussianState.register(SqrtGaussianState)  # noqa: E305
 
 
@@ -305,6 +307,8 @@ class ParticleState(Type):
         cov = np.cov(self.particles.state_vector, ddof=0, aweights=np.array(self.particles.weight))
         # Fix one dimensional covariances being returned with zero dimension
         return cov
+
+
 State.register(ParticleState)  # noqa: E305
 
 
@@ -339,20 +343,20 @@ class CompositeState(Type):
         if self.inner_states:
             if any(state1.timestamp != state2.timestamp
                    for state1, state2 in combinations(self.inner_states, 2)):
-                raise ValueError("Component-states must share the same timestamp")
+                raise AttributeError("Component-states must share the same timestamp")
             elif self.default_timestamp and \
                     any(state.timestamp != self.default_timestamp for state in self.inner_states):
-                raise ValueError("If a default timestamp is defined alongside component states, "
-                                 "these states must share the same timestamp as the default "
-                                 "timestamp")
+                raise AttributeError("If a default timestamp is defined alongside component "
+                                     "states, these states must share the same timestamp as the "
+                                     "default timestamp")
             else:
                 # Get timestamp from first component state
                 self._timestamp = self.inner_states[0].timestamp
         elif self.default_timestamp:
             self._timestamp = self.default_timestamp
         else:
-            raise AttributeError(f"{type(self)} must either have component states to define its "
-                                 f"timestamp or a default timestamp")
+            raise AttributeError("CompositeState must either have component states to define its "
+                                 "timestamp or a default timestamp")
 
     @property
     def state_vectors(self):
@@ -377,7 +381,7 @@ class CompositeState(Type):
         return del_item
 
     def __iter__(self):
-        return self.inner_states
+        return iter(self.inner_states)
 
     def __len__(self):
         return len(self.inner_states)
