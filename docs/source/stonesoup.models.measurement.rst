@@ -23,4 +23,4 @@ Observation
 -----------
 .. automodule:: stonesoup.models.measurement.observation
     :show-inheritance:
-    :inheritedmembers:
+    :inherited-members:
