@@ -309,11 +309,18 @@ State.register(ParticleState)  # noqa: E305
 
 
 class CompositeState(Type):
+    """Composite State type
+
+    This is a composite state object which contains a sequence of inner :class:`State` types"""
 
     inner_states: Sequence[State] = Property(default=None,
                                              doc="Sequence of states comprising the composite "
                                                  "state.")
-    default_timestamp: datetime.datetime = Property(default=None)
+    default_timestamp: datetime.datetime = Property(default=None,
+                                                    doc="Default timestamp if no component states "
+                                                        "exist to attain timestamp from."
+                                                        "Defaults to None, whereby component "
+                                                        "states will be required.")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -321,6 +328,7 @@ class CompositeState(Type):
         if self.inner_states is None:
             self.inner_states = list()
 
+        self._timestamp = None
         self.check_timestamp()
 
     @property
@@ -332,12 +340,19 @@ class CompositeState(Type):
             if any(state1.timestamp != state2.timestamp
                    for state1, state2 in combinations(self.inner_states, 2)):
                 raise ValueError("Component-states must share the same timestamp")
-            elif self.default_timestamp and any(state.timestamp != self.default_timestamp for state in self.inner_states):
-                raise ValueError("Component-states must share the same timestamp as super-state")
+            elif self.default_timestamp and \
+                    any(state.timestamp != self.default_timestamp for state in self.inner_states):
+                raise ValueError("If a default timestamp is defined alongside component states, "
+                                 "these states must share the same timestamp as the default "
+                                 "timestamp")
             else:
+                # Get timestamp from first component state
                 self._timestamp = self.inner_states[0].timestamp
         elif self.default_timestamp:
             self._timestamp = self.default_timestamp
+        else:
+            raise AttributeError(f"{type(self)} must either have component states to define its "
+                                 f"timestamp or a default timestamp")
 
     @property
     def state_vectors(self):
@@ -345,10 +360,21 @@ class CompositeState(Type):
 
     @property
     def state_vector(self):
+        """A combination of the component states' state vectors."""
         return StateVector(np.concatenate(self.state_vectors))
 
     def __getitem__(self, index):
         return self.inner_states[index]
+
+    def __setitem__(self, index, value):
+        set_item = self.inner_states.__setitem__(index, value)
+        self.check_timestamp()
+        return set_item
+
+    def __delitem__(self, index):
+        del_item = self.inner_states.__delitem__(index)
+        self.check_timestamp()
+        return del_item
 
     def __iter__(self):
         return self.inner_states
@@ -356,13 +382,18 @@ class CompositeState(Type):
     def __len__(self):
         return len(self.inner_states)
 
+    def insert(self, index, value):
+        inserted_state = self.inner_states.insert(index, value)
+        self.check_timestamp()
+        return inserted_state
+
     def append(self, value):
         """Add value at end of :attr:`inner_states`.
 
         Parameters
         ----------
-        value: Detection
-            A detection object to be added at the end of :attr:`inner_states`.
+        value: State
+            A state object to be added at the end of :attr:`inner_states`.
         """
         self.inner_states.append(value)
         self.check_timestamp()
