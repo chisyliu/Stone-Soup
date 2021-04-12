@@ -168,8 +168,12 @@ class ParticleMeasurementPrediction(MeasurementPrediction, ParticleState):
 
 
 class CompositePrediction(Prediction, CompositeState):
-    pass
+    """CompositePrediction type that represents a prediction in a composite state space.
+
+    Composition of multiple Prediction types."""
 
 
 class CompositeMeasurementPrediction(MeasurementPrediction, CompositeState):
-    pass
+    """CompositePrediction type that represents a measurement prediction in a composite measurement
+    space.
+    """
