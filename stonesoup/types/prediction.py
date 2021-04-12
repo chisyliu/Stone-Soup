@@ -169,3 +169,7 @@ class ParticleMeasurementPrediction(MeasurementPrediction, ParticleState):
 
 class CompositePrediction(Prediction, CompositeState):
     pass
+
+
+class CompositeMeasurementPrediction(MeasurementPrediction, CompositeState):
+    pass
