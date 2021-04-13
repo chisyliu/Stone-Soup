@@ -13,21 +13,21 @@ class BasicTimeInvariantClassificationTransitionModel(TransitionModel):
     r"""Time invariant model of a classification transition
 
     The assumption is that an object can be classified as finitely many discrete classes
-    :math:`\{\phi_{k}|k\in\Z^+\}`, with a state space defined by state vectors representing
-    multinomial distributions over these classes :math:`\bar{x}_{{t}_{i}} = P(\phi_{i}, t)`,
-    with constant probability :math:`P(\phi_i, t+1 | \phi_j, t)` of transitioning between these in
-    any given time-step. This is modelled
-    by the stochastic matrix :attr:`transition_matrix`, where the :math:`ij`-th element is given
-    by :math:`P(\phi_i, t + \Delta t | \phi_j, t) \forall \Delta t > 0`.
+    :math:`\{\phi_k|k\in\Z_{\ge0}\}`, with a state space defined by state vectors representing
+    multinomial distributions over these classes :math:`x_{t_i} = P(\phi_i, t)`,
+    with constant probability :math:`P(\phi_i, t + \Delta t | \phi_j, t)` of transitioning from
+    any class :math:`\phi_j` to class :math:`\phi_i` in any given time-step :math:`\Delta t > 0`.
+    This is modelled by the stochastic matrix :attr:`transition_matrix`.
     """
     transition_matrix: Matrix = Property(
-        doc="Matrix :math:`F_{ij} = P(\phi^{i}_{t}|\phi^{j}_{t-1})` determining the probability "
-            "that the state is class :math:`\phi^{j}` at time :math:`t` given that it was class "
-            ":math:`\phi^{j}` at time :math:`t-1`.")
+        doc=r"Matrix :math:`F_{ij} = P(\phi_i, t + \Delta t | \phi_j, t)` determining the "
+            r"probability that an object is class :math:`\phi^i` at time :math:`t + \Delta t` "
+            r"given that it was class :math:`\phi^{j}` at time "
+            r":math:`t \hspace \forall \Delta t > 0`.")
     transition_noise: Matrix = Property(
         default=None,
-        doc="Matrix :math:`\omega_{ij}` defining additive noise to class transition. "
-            "Noise added is given by :math:noise_{i} = \omega_{ij}F_{jk}x_{k}")
+        doc=r"Matrix :math:`\omega_{ij}` defining additive noise to class transition. "
+            r"Noise added is given by :math:`noise_{i} = \omega_{ij}F_{jk}x_{k}`")
 
     @property
     def ndim_state(self):
@@ -42,9 +42,20 @@ class BasicTimeInvariantClassificationTransitionModel(TransitionModel):
         return self.transition_matrix.shape[0]
 
     def function(self, state, noise: bool = False, **kwargs) -> StateVector:
-        """Applies transformation :math:`f(\vec{\phi}_{t-1}, t) = F\vec{\phi}_{t-1} + noise` (note
-        that this is then normalised) (under the assumption that a state vector defines a true
-        object's categorical distribution).
+        r"""Applies transformation
+
+        .. math::
+            \mathbf{x}_{t + \Delta t} &= f(\mathbf{x}_{t + \Delta t}, t)\\
+                                      &= f(\mathbf{x}_{t + \Delta t})\\
+                                      &= \mathbf{Fx}_t + \boldsymbol{\Omega}\\
+                                      &= \mathbf{Fx}_t + \boldsymbol{\omega}\mathbf{Fx}_t\\
+                                      &= (I + \boldsymbol{\omega})\mathbf{Fx}_t
+
+        .. math::
+            (\mathbf{x}_{t + \Delta t})_i =
+            (\delta_{ij} + \omega_{ij})P(\phi_j, t + \Delta t | \phi_k, t)P(\phi_k, t)
+
+        (note that this is then normalised).
 
         Parameters
         ----------
@@ -54,7 +65,9 @@ class BasicTimeInvariantClassificationTransitionModel(TransitionModel):
         Returns
         -------
         state_vector: :class:`stonesoup.types.array.StateVector`
-            of shape (:py:attr:`~ndim_state, 1`). The resultant state vector of the transition.
+            of shape (:py:attr:`~ndim_state, 1`). The resultant state vector of the transition,
+            representing a multinomial distribution across the space of possible classes the
+            transitioned object can take.
         """
         x = self.transition_matrix @ state.state_vector
 
