@@ -4,9 +4,9 @@ from numbers import Real
 import numpy as np
 import pytest
 
-from ....measures import ObservationAccuracy
 from ..classification import BasicTimeInvariantClassificationTransitionModel
 from ..linear import LinearGaussianTimeInvariantTransitionModel
+from ....measures import ObservationAccuracy
 from ....types.state import State
 
 

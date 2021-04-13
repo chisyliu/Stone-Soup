@@ -3,7 +3,7 @@ from typing import Union
 
 import numpy as np
 
-from stonesoup.measures import ObservationAccuracy
+from ...measures import ObservationAccuracy
 from ...base import Property
 from ...models.transition import TransitionModel
 from ...types.array import Matrix, StateVector, StateVectors
