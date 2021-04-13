@@ -72,11 +72,14 @@ class BasicTimeInvariantClassificationTransitionModel(TransitionModel):
         x = self.transition_matrix @ state.state_vector
 
         if noise:
+            if self.transition_noise is None:
+                raise AttributeError("Require a defined transition noise matrix to generate noise")
+
             row = self.transition_noise @ x
 
             x = x + StateVector(row)
 
-            x = x / np.sum(x)  # normalise
+        x = x / np.sum(x)  # normalise
 
         return x
 
