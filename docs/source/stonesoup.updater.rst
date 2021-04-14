@@ -24,3 +24,9 @@ Point Process
 
 .. automodule:: stonesoup.updater.pointprocess
     :show-inheritance:
+
+Classification
+--------------
+
+.. automodule:: stonesoup.updater.classification
+    :show-inheritance:
