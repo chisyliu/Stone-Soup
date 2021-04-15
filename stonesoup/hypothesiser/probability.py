@@ -148,7 +148,7 @@ class PDAHypothesiser(Hypothesiser):
         return MultipleHypothesis(hypotheses, normalise=True, total_weight=1)
 
 
-class MultinomialHypothesiser(Hypothesiser):
+class ClassificationHypothesiser(Hypothesiser):
     r"""Hypothesiser based on the consideration of multinomial distribution accuracy.
     Whereby it is assumed track space is a finite space of discrete classifications
     :math:`\{\phi_i | i \in \mathbb{Z}_{>0}\}` and measurement spaces are finite spaces of
