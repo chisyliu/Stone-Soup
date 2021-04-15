@@ -180,6 +180,17 @@ class ClassificationHypothesiser(Hypothesiser):
         default=ObservationAccuracy,
         doc="Measure type to determine accuracy of prediction-measurement pairs")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not isinstance(self.measure, Measure):
+            # attempt to instantiate measure
+            try:
+                self.measure = self.measure()
+            except TypeError:
+                raise TypeError("ClassificationHypothesiser measure attribute must be a measure "
+                                "type")
+
     def hypothesise(self, track, detections, timestamp):
         """ Evaluate and return all track association hypotheses.
 
@@ -223,10 +234,22 @@ class ClassificationHypothesiser(Hypothesiser):
                 prediction, detection.measurement_model)
 
             measurement_model = detection.measurement_model
+
+            if measurement_model is None:
+                raise ValueError("All observation-based measurements must have corresponding "
+                                 "measurement models")
+
+            if not hasattr(measurement_model, 'emission_matrix'):
+                raise ValueError("ClassificationHypothesiser can only hypothesise "
+                                 "observation-based measurements with corresponding state space "
+                                 "emissions. Therefore an emission matrix must be defined in the "
+                                 "measurement's corresponding measurement model")
+
             emission = measurement_model.inverse_function(detection)
 
-            pdf = self.measure(prediction, emission)
-            probability = (pdf * self.prob_detect) / self.clutter_spatial_density
+            probability = Probability(self.measure(prediction.state_vector, emission),
+                                      log_value=True)
+            probability = (probability * self.prob_detect) / self.clutter_spatial_density
 
             # True detection hypothesis
             hypotheses.append(
