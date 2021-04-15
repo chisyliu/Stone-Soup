@@ -1,16 +1,16 @@
 from scipy.stats import multivariate_normal as mn
 
-from stonesoup.measures import Measure, ObservationAccuracy
 from .base import Hypothesiser
 from ..base import Property
+from ..measures import Measure, ObservationAccuracy
+from ..predictor import Predictor
+from ..predictor.classification import ClassificationPredictor
 from ..types.detection import MissedDetection
 from ..types.hypothesis import SingleProbabilityHypothesis
 from ..types.multihypothesis import MultipleHypothesis
 from ..types.numeric import Probability
-from ..predictor import Predictor
 from ..updater import Updater
-
-from scipy.stats import entropy
+from ..updater.classification import ClassificationUpdater
 
 
 class PDAHypothesiser(Hypothesiser):
@@ -166,8 +166,8 @@ class ClassificationHypothesiser(Hypothesiser):
     each other.
     """
 
-    predictor: Predictor = Property(doc="Predict tracks to detection times")
-    updater: Updater = Property(doc="Updater used to get measurement prediction")
+    predictor: ClassificationPredictor = Property(doc="Predict tracks to detection times")
+    updater: ClassificationUpdater = Property(doc="Updater used to get measurement prediction")
     clutter_spatial_density: float = Property(
         doc="Spatial density of clutter - tied to probability of false detection")
     prob_detect: Probability = Property(
@@ -216,7 +216,6 @@ class ClassificationHypothesiser(Hypothesiser):
             ))
 
         for detection in detections:
-
             prediction = self.predictor.predict(
                 track, timestamp=detection.timestamp)
 
