@@ -11,9 +11,9 @@ from ...types.array import Matrix, StateVector, StateVectors, CovarianceMatrix
 class CategoricalTransitionModel(TransitionModel):
     r"""The transiton model for categorical data
     This is a time invariant model for the transition of a state that can take one of a finite
-    number of categories :math:`\{\phi_k|k\in\Z_{\ge0}\}`, where a state space vector takes the
-    form :math:`x_{t_i} = P(\phi_i, t)`, i.e. the :math:`i`-th state vector component is the
-    probability that the state is of category :math:`\phi_i`.
+    number of categories :math:`\{\phi_m|m\in\Z_{\ge0}\}`, where a state space vector takes the
+    form :math:`x_{k_i} = P(\phi_i, k)`, i.e. the :math:`i`-th state vector component is the
+    probability that the state is of category :math:`\phi_i` at 'time' :math:`k`.
     """
     transition_matrix: Matrix = Property(
         doc=r"Stochastic matrix :math:`(F_{k+1})_{ij} = P(\phi_i, k+1 | \phi_j, k)` determining "
