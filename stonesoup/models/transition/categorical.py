@@ -25,14 +25,7 @@ class CategoricalTransitionModel(TransitionModel):
 
     @property
     def ndim_state(self):
-        """ndim_state getter method
-
-        Returns
-        -------
-        : :class:`int`
-            The number of model state dimensions.
-        """
-
+        """Number of model state dimensions/categories."""
         return self.transition_matrix.shape[0]
 
     def function(self, state, noise: bool = False, **kwargs) -> StateVector:
@@ -49,6 +42,10 @@ class CategoricalTransitionModel(TransitionModel):
         ----------
         state : :class:`stonesoup.state.State`
             The state to be transitioned according to the models in :py:attr:`~model_list`.
+        noise: bool
+            If 'True', additive log noise (generated via random sampling) will be included prior
+            to transformation back to the interval :math:`[0, 1]`. Noise vectors cannot be defined
+            beforehand. Only a boolean value is valid.
 
         Returns
         -------
@@ -71,7 +68,6 @@ class CategoricalTransitionModel(TransitionModel):
         # what to do if p=1
         fp = self.transition_matrix @ state.state_vector
         if any(fp == 1):
-            print('here')
             y = fp * 1.0
             y[fp == 1] = np.finfo(np.float64).max
             y[fp == 0] = np.finfo(np.float64).min
@@ -97,7 +93,7 @@ class CategoricalTransitionModel(TransitionModel):
         return StateVectors(omega).T
 
     def pdf(self, state1, state2, **kwargs):
-        """Assumes that state 1 is binary and this returns the (transited) probability of that
-        state"""
+        """Assumes that state 1 is binary and this returns the probability that the transited
+        state2 is state1"""
         Fx = self.transition_matrix @ state2.state_vector
         return Fx.T @ state1.state_vector

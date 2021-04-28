@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from ..categorical import CategoricalTransitionModel
-from ....types.array import StateVectors, StateVector
+from ....types.array import StateVectors, StateVector, Matrix, CovarianceMatrix
 from ....types.state import State
 
 
@@ -23,9 +23,9 @@ def create_random_multinomial(ndim):
 
 def test_basic_time_invariant():
     # 2 possible categories
-    F = np.array([[0.9, 0.1],
-                  [0.2, 0.8]])
-    Q = np.eye(2)
+    F = Matrix([[0.9, 0.1],
+                [0.2, 0.8]])
+    Q = CovarianceMatrix(np.eye(2))
 
     model = CategoricalTransitionModel(F, Q)
 
@@ -90,6 +90,6 @@ def test_basic_time_invariant():
     for _ in range(3):
         state1 = create_random_multinomial(2)
         state2 = create_random_multinomial(2)
-        exp_value = (model.transition_matrix @ state2.state_vector).T @ state1.state_vector
+        exp_value = (F @ state2.state_vector).T @ state1.state_vector
         actual_value = model.pdf(state1, state2)
         assert np.array_equal(actual_value, exp_value)
