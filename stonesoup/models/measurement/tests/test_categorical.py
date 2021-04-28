@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from ...transition.tests.test_categorical import create_random_multinomial
+from ...transition.tests.test_categorical import create_random_categorical
 from ....models.measurement.categorical import CategoricalMeasurementModel
 from ....types.array import Matrix, CovarianceMatrix, StateVectors
 
@@ -20,6 +20,16 @@ def test_time_invariant_observation():
                                          "space, but the mapping is length 3"):
         CategoricalMeasurementModel(ndim_state=6, emission_matrix=np.eye(2), mapping=[0, 2, 4])
 
+    # test category name error
+    with pytest.raises(ValueError, match="2 category names were given for a model which returns "
+                                         "vectors of length 3"):
+        CategoricalMeasurementModel(ndim_state=6, emission_matrix=np.eye(3), mapping=[0, 2, 4],
+                                    category_names=['red', 'blue'])
+    with pytest.raises(ValueError, match="4 category names were given for a model which returns "
+                                         "vectors of length 3"):
+        CategoricalMeasurementModel(ndim_state=6, emission_matrix=np.eye(3), mapping=[0, 2, 4],
+                                    category_names=['red', 'blue', 'yellow', 'green'])
+
     # 3 possible measurement categories, 2 possible hidden categories
     E = Matrix([[0.5, 0.5, 0.0],
                 [0.0, 0.5, 0.5]])
@@ -35,9 +45,12 @@ def test_time_invariant_observation():
     # test ndim meas
     assert model.ndim_meas == 3
 
+    # test default category names
+    assert model.category_names == [0, 1, 2]
+
     # test conditional probability emission
     for _ in range(3):
-        state = create_random_multinomial(4)
+        state = create_random_categorical(4)
         # testing noiseless as noise generation uses random sampling
         exp_value = E.T @ state.state_vector[mapping]
         exp_value = exp_value / np.sum(exp_value)
@@ -47,7 +60,7 @@ def test_time_invariant_observation():
 
     # test function
     for _ in range(3):
-        state = create_random_multinomial(4)
+        state = create_random_categorical(4)
         measurement = model.function(state)
         assert len(np.where(measurement == 0)[0]) == 2
         assert len(np.where(measurement == 1)[1]) == 1
@@ -63,8 +76,8 @@ def test_time_invariant_observation():
 
     # test pdf
     for _ in range(3):
-        state1 = create_random_multinomial(3)  # measurement vector
-        state2 = create_random_multinomial(4)  # state vector
+        state1 = create_random_categorical(3)  # measurement vector
+        state2 = create_random_categorical(4)  # state vector
         exp_Hx = E.T @ state2.state_vector[mapping]
         exp_Hx = exp_Hx / np.sum(exp_Hx)
         exp_value = exp_Hx.T @ state1.state_vector
