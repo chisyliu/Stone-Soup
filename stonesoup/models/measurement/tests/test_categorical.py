@@ -4,21 +4,21 @@ import numpy as np
 import pytest
 
 from ...transition.tests.test_categorical import create_random_multinomial
-from ....models.measurement.categorical import CategoricalMeasurement
+from ....models.measurement.categorical import CategoricalMeasurementModel
 from ....types.array import Matrix, CovarianceMatrix, StateVectors
 
 
 def test_time_invariant_observation():
     # test emission matrix error
     with pytest.raises(ValueError, match="Row 0 of emission matrix does not sum to 1"):
-        CategoricalMeasurement(ndim_state=2,
-                               emission_matrix=Matrix([[1, 1],
+        CategoricalMeasurementModel(ndim_state=2,
+                                    emission_matrix=Matrix([[1, 1],
                                                        [0, 0]]))
 
     # test mapping error
     with pytest.raises(ValueError, match="Emission matrix maps from 2 elements of the state "
                                          "space, but the mapping is length 3"):
-        CategoricalMeasurement(ndim_state=6, emission_matrix=np.eye(2), mapping=[0, 2, 4])
+        CategoricalMeasurementModel(ndim_state=6, emission_matrix=np.eye(2), mapping=[0, 2, 4])
 
     # 3 possible measurement categories, 2 possible hidden categories
     E = Matrix([[0.5, 0.5, 0.0],
@@ -27,10 +27,10 @@ def test_time_invariant_observation():
 
     mapping = [0, 2]
 
-    model = CategoricalMeasurement(ndim_state=4,
-                                   emission_matrix=E,
-                                   emission_covariance=Ecov,
-                                   mapping=mapping)
+    model = CategoricalMeasurementModel(ndim_state=4,
+                                        emission_matrix=E,
+                                        emission_covariance=Ecov,
+                                        mapping=mapping)
 
     # test ndim meas
     assert model.ndim_meas == 3
@@ -43,7 +43,7 @@ def test_time_invariant_observation():
         exp_value = exp_value / np.sum(exp_value)
         actual_value = model._cond_prob_emission(state)
         assert np.array_equal(exp_value, actual_value)
-        assert sum(actual_value) == 1
+        assert np.isclose(np.sum(actual_value), 1)
 
     # test function
     for _ in range(3):

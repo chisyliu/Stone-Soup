@@ -9,7 +9,7 @@ from ...base import Property
 from ...types.array import Matrix, StateVector, StateVectors, CovarianceMatrix
 
 
-class CategoricalMeasurement(MeasurementModel):
+class CategoricalMeasurementModel(MeasurementModel):
     r"""Measurement model which returns a category.
     This is a time invariant model for simple observations of a state.
     A measurement can take one of a finite number of observation categories
